@@ -1,0 +1,24 @@
+---
+galaxy_info:
+  role_name: caddy
+  author: Favo Yang
+  description: >-
+    Deploy Caddy with Docker Compose and validate configuration before
+    rollout.
+  license: MIT
+  min_ansible_version: "2.13"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - jammy
+        - focal
+  galaxy_tags:
+    - caddy
+    - docker
+    - reverse_proxy
+    - web
+dependencies: []

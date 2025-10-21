@@ -1,0 +1,24 @@
+---
+galaxy_info:
+  role_name: docker_compose
+  author: Favo Yang
+  description: >-
+    Deploy and manage Docker Compose applications with templated
+    configuration support.
+  license: MIT
+  min_ansible_version: "2.13"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye
+    - name: Ubuntu
+      versions:
+        - jammy
+        - focal
+  galaxy_tags:
+    - docker
+    - compose
+    - containers
+    - deployment
+dependencies: []
