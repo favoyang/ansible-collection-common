@@ -1,0 +1,7 @@
+# Import all site configurations
+import /etc/caddy/conf.d/*.caddy
+
+# Default response for unmatched domains
+:80 {
+        respond "caddy up" 200
+}

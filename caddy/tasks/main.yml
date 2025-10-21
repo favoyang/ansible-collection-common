@@ -1,0 +1,117 @@
+- name: Setup Caddy
+  vars:
+    caddy_local_caddyfile: "/tmp/Caddyfile.{{ inventory_hostname }}"
+    caddy_local_conf_dir: "/tmp/caddy_conf.d.{{ inventory_hostname }}"
+  block:
+    - name: Create remote directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+      loop:
+        - /srv/caddy
+        - /srv/caddy/data
+        - /srv/caddy/config
+        - /srv/caddy/conf.d
+        - /srv/caddy/sites
+        - /srv/caddy/logs
+
+    - name: Derive site template output filename
+      set_fact:
+        caddy_site_output_filename: "{{ caddy_site_template | basename | regex_replace('\\.j2$', '') }}"
+      when: caddy_site_template is defined
+
+    - name: Ensure site template renders to .caddy filename
+      assert:
+        that:
+          - caddy_site_output_filename is match('^.+\\.caddy$')
+        fail_msg: "Site template {{ caddy_site_template }} must render to a *.caddy filename."
+      when: caddy_site_template is defined
+
+    - name: Ensure local conf.d directory exists for validation
+      delegate_to: localhost
+      file:
+        path: "{{ caddy_local_conf_dir }}"
+        state: directory
+        mode: '0755'
+      changed_when: false
+
+    - name: Render site template locally for validation
+      delegate_to: localhost
+      template:
+        src: "{{ caddy_site_template }}"
+        dest: "{{ caddy_local_conf_dir }}/{{ caddy_site_output_filename }}"
+        mode: '0644'
+      when: caddy_site_template is defined
+      changed_when: false
+
+    - name: Render Caddyfile locally for validation
+      delegate_to: localhost
+      template:
+        src: "{{ caddyfile_template }}"
+        dest: "{{ caddy_local_caddyfile }}"
+        mode: '0644'
+      changed_when: false
+
+    - name: Validate Caddy configuration syntax locally
+      delegate_to: localhost
+      shell: |
+        docker run --rm \
+          -v {{ caddy_local_caddyfile }}:/etc/caddy/Caddyfile:ro \
+          -v {{ caddy_local_conf_dir }}:/etc/caddy/conf.d:ro \
+          {{ caddy_image }} caddy validate --config /etc/caddy/Caddyfile
+      register: caddy_validation_result
+      failed_when: caddy_validation_result.rc != 0
+      changed_when: false
+
+    - name: Display Caddy validation result
+      debug:
+        msg: "Caddy configuration validation passed successfully"
+      when: caddy_validation_result.rc == 0
+
+    - name: Clean up temporary Caddyfile
+      delegate_to: localhost
+      file:
+        path: "{{ caddy_local_caddyfile }}"
+        state: absent
+      when: caddy_validation_result.rc == 0
+      changed_when: false
+
+    - name: Clean up temporary site configuration directory
+      delegate_to: localhost
+      file:
+        path: "{{ caddy_local_conf_dir }}"
+        state: absent
+      when: caddy_validation_result.rc == 0
+      changed_when: false
+
+    - name: Render remote /srv/caddy/Caddyfile
+      template:
+        src: "{{ caddyfile_template }}"
+        dest: /srv/caddy/Caddyfile
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Render site template to /srv/caddy/conf.d/
+      template:
+        src: "{{ caddy_site_template }}"
+        dest: "/srv/caddy/conf.d/{{ caddy_site_output_filename }}"
+        owner: root
+        group: root
+        mode: '0644'
+      when: caddy_site_template is defined
+
+    - name: Setup docker compose for Caddy
+      block:
+        - name: Preserve current role path for docker compose setup
+          set_fact:
+            current_role_path: "{{ role_path }}"
+
+        - name: Setup docker compose for Caddy
+          include_role:
+            name: docker_compose
+          vars:
+            docker_compose_local_dir: "{{ current_role_path }}/templates"
+            docker_compose_remote_dir: "/srv/caddy"

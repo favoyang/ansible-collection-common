@@ -1,0 +1,10 @@
+---
+- name: Exercise docker_compose role locally
+  hosts: servers
+  gather_facts: false
+  become: true
+  vars:
+    docker_compose_local_dir: "{{ playbook_dir }}/fixtures/docker_compose"
+    docker_compose_remote_dir: /tmp/docker_compose_role
+  roles:
+    - role: docker_compose

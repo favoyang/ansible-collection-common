@@ -1,0 +1,17 @@
+---
+services:
+  caddy:
+    image: {{ caddy_image }}
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /srv/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - /srv/caddy/conf.d:/etc/caddy/conf.d
+      - /srv/caddy/sites:/srv/sites
+      - /srv/caddy/data:/data
+      - /srv/caddy/config:/config
+      - /srv/caddy/logs:/var/log/caddy
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

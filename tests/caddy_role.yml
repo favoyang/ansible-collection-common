@@ -1,0 +1,8 @@
+---
+- name: Exercise Caddy role locally
+  hosts: servers
+  gather_facts: false
+  vars:
+    caddy_image: caddy:2
+  roles:
+    - role: caddy

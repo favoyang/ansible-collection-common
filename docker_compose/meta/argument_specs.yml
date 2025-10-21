@@ -1,0 +1,12 @@
+---
+argument_specs:
+  main:
+    options:
+      docker_compose_local_dir:
+        type: "str"
+        required: true
+        description: "Local directory containing docker-compose files"
+      docker_compose_remote_dir:
+        type: "str"
+        required: true
+        description: "Remote directory where docker-compose files will be deployed"

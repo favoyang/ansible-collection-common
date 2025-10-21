@@ -1,0 +1,91 @@
+---
+- name: Create remote directory if it doesn't exist
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+  with_items:
+    - '{{ docker_compose_remote_dir }}'
+
+- name: Prepare variables
+  set_fact:
+    local_docker_compose_path: '{{ docker_compose_local_dir }}/docker-compose.yml'
+    local_docker_compose_j2_path: '{{ docker_compose_local_dir }}/docker-compose.yml.j2'
+    remote_docker_compose_path: '{{ docker_compose_remote_dir }}/docker-compose.yml'
+    local_dot_env_path: '{{ docker_compose_local_dir }}/.env'
+    local_dot_env_j2_path: '{{ docker_compose_local_dir }}/.env.j2'
+    remote_dot_env_path: '{{ docker_compose_remote_dir }}/.env'
+
+- name: Check if local docker-compose.yml exists
+  delegate_to: localhost
+  stat:
+    path: '{{ local_docker_compose_path }}'
+  register: docker_compose_stat
+
+- name: Copy docker-compose.yml if exists
+  template:
+    src: '{{ local_docker_compose_path }}'
+    dest: '{{ remote_docker_compose_path }}'
+    owner: root
+    mode: 0644
+  when: docker_compose_stat.stat.exists == True
+
+- name: Check if local docker-compose.yml.j2 exists
+  delegate_to: localhost
+  stat:
+    path: '{{ local_docker_compose_j2_path }}'
+  register: docker_compose_j2_stat
+
+- name: Render docker-compose.yml.j2 if exists
+  template:
+    src: '{{ local_docker_compose_j2_path }}'
+    dest: '{{ remote_docker_compose_path }}'
+    owner: root
+    mode: 0644
+  when: docker_compose_j2_stat.stat.exists == True
+
+- name: Fail if neither docker-compose.yml nor docker-compose.yml.j2 exists
+  fail:
+    msg: |
+      Neither docker-compose.yml nor docker-compose.yml.j2 exists.
+      Checked paths:
+      - {{ local_docker_compose_path }}
+      - {{ local_docker_compose_j2_path }}
+      At least one of these files must exist to proceed.
+  when: docker_compose_stat.stat.exists == False and docker_compose_j2_stat.stat.exists == False
+
+- name: Check if local .env exists
+  delegate_to: localhost
+  stat:
+    path: '{{ local_dot_env_path }}'
+  register: dot_env_stat
+
+- name: Copy .env if exists
+  template:
+    src: '{{ local_dot_env_path }}'
+    dest: '{{ remote_dot_env_path }}'
+    owner: root
+    mode: 0644
+  when: dot_env_stat.stat.exists == True
+
+- name: Check if local .env.j2 exists
+  delegate_to: localhost
+  stat:
+    path: '{{ local_dot_env_j2_path }}'
+  register: dot_env_j2_stat
+
+- name: Render .env.j2 if exists
+  template:
+    src: '{{ local_dot_env_j2_path }}'
+    dest: '{{ remote_dot_env_path }}'
+    owner: root
+    mode: 0644
+  when: dot_env_j2_stat.stat.exists == True
+
+- name: Start containers with latest images using docker compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_remote_dir }}"
+    state: present
+    pull: always
+  become: true
+  become_user: root
