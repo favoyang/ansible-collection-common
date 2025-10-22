@@ -24,7 +24,7 @@
         caddy_site_output_filename: >-
           {{ caddy_site_template
              | basename
-             | regex_replace('\\.j2$', '') }}
+             | regex_replace('\.j2$', '') }}
       when: caddy_site_template is defined
 
     - name: Ensure site template renders to .caddy filename
