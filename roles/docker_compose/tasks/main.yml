@@ -110,6 +110,15 @@
          docker_compose_registry_password != '' and 
          docker_compose_registry_url != '' }}
 
+- name: Show authentication status
+  ansible.builtin.debug:
+    msg: >-
+      Docker registry authentication: {{ 'ENABLED' if docker_compose_needs_auth else 'DISABLED' }}
+      Registry URL: {{ docker_compose_registry_url if docker_compose_registry_url != '' else 'Not set' }}
+      Username: {{ '***PROVIDED***' if docker_compose_registry_username != '' else 'Not set' }}
+      Password: {{ '***PROVIDED***' if docker_compose_registry_password != '' else 'Not set' }}
+  no_log: true
+
 - name: Login to Docker registry
   community.docker.docker_login:
     registry_url: "{{ docker_compose_registry_url | default(omit) }}"
