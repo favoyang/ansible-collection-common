@@ -96,21 +96,21 @@
     docker_compose_registry: >-
       {{ docker_compose_registry | default(
           lookup('env', 'DOCKER_REGISTRY', default=''), true) }}
-    docker_compose_username: >-
-      {{ docker_compose_username | default(
+    docker_compose_registry_username: >-
+      {{ docker_compose_registry_username | default(
           lookup('env', 'DOCKER_USERNAME', default=''), true) }}
-    docker_compose_password: >-
-      {{ docker_compose_password | default(
+    docker_compose_registry_password: >-
+      {{ docker_compose_registry_password | default(
           lookup('env', 'DOCKER_PASSWORD', default=''), true) }}
 
 - name: Login to Docker registry
   community.docker.docker_login:
     registry_url: "{{ docker_compose_registry | default(omit) }}"
-    username: "{{ docker_compose_username }}"
-    password: "{{ docker_compose_password }}"
+    username: "{{ docker_compose_registry_username }}"
+    password: "{{ docker_compose_registry_password }}"
     state: present
   no_log: true
-  when: docker_compose_username != '' and docker_compose_password != ''
+  when: docker_compose_registry_username != '' and docker_compose_registry_password != ''
 
 - name: Deploy Docker Compose application
   block:
@@ -129,7 +129,7 @@
     - name: Logout from Docker registry
       community.docker.docker_login:
         registry_url: "{{ docker_compose_registry | default(omit) }}"
-        username: "{{ docker_compose_username }}"
+        username: "{{ docker_compose_registry_username }}"
         state: absent
       no_log: true
-      when: docker_compose_username != '' and docker_compose_password != ''
+      when: docker_compose_registry_username != '' and docker_compose_registry_password != ''

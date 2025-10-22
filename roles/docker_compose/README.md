@@ -36,8 +36,8 @@ The role copies files from a local directory to a remote directory and manages D
     docker_compose_local_dir: files/myapp
     docker_compose_remote_dir: /srv/myapp
     docker_compose_registry: "ghcr.io"
-    docker_compose_username: "myuser"
-    docker_compose_password: "{{ vault_docker_password }}"
+    docker_compose_registry_username: "myuser"
+    docker_compose_registry_password: "{{ vault_docker_password }}"
 ```
 
 ### Using Environment Variables
@@ -102,8 +102,8 @@ files/myapp/
 
 ### Optional Variables
 - `docker_compose_registry`: Docker registry URL for authentication (default: empty for Docker Hub)
-- `docker_compose_username`: Docker registry username for authentication
-- `docker_compose_password`: Docker registry password for authentication
+- `docker_compose_registry_username`: Docker registry username for authentication
+- `docker_compose_registry_password`: Docker registry password for authentication
 
 **Environment Variable Fallback**: If not provided as Ansible variables, the role will automatically check for these environment variables:
 - `DOCKER_REGISTRY`
@@ -112,5 +112,5 @@ files/myapp/
 
 **Security Note**: For production use, consider using Ansible Vault to encrypt sensitive credentials:
 ```bash
-ansible-vault encrypt_string 'your_password' --name 'docker_compose_password'
+ansible-vault encrypt_string 'your_password' --name 'docker_compose_registry_password'
 ```
