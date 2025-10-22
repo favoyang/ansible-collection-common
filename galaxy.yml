@@ -15,7 +15,7 @@ tags:
   - compose
   - caddy
   - homelab
-repository: https://github.com/favoyang/ansible-roles
+repository: https://github.com/favoyang/ansible-collection-common
 documentation: README.md
 dependencies:
   community.docker: '>=3.0.0'

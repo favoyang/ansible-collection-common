@@ -7,7 +7,7 @@ Reusable common Ansible roles for personal use, bundled as the `favoyang.common`
 Install straight from git (works with any branch or tag):
 
 ```bash
-ansible-galaxy collection install git+https://github.com/favoyang/ansible-roles.git
+ansible-galaxy collection install git+https://github.com/favoyang/ansible-collection-common.git
 ```
 
 The collection declares a dependency on `community.docker`, so `ansible-galaxy` pulls it automatically. Re-run
