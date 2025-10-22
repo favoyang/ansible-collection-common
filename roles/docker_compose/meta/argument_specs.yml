@@ -11,3 +11,21 @@ argument_specs:
         required: true
         description: >-
           Remote directory where docker-compose files will be deployed
+      docker_compose_registry:
+        type: "str"
+        required: false
+        description: >-
+          Docker registry URL for authentication. If empty, uses Docker Hub.
+          Can also be set via DOCKER_REGISTRY environment variable.
+      docker_compose_username:
+        type: "str"
+        required: false
+        description: >-
+          Docker registry username for authentication.
+          Can also be set via DOCKER_USERNAME environment variable.
+      docker_compose_password:
+        type: "str"
+        required: false
+        description: >-
+          Docker registry password for authentication.
+          Can also be set via DOCKER_PASSWORD environment variable.

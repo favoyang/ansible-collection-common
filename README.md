@@ -4,11 +4,34 @@ Reusable common Ansible roles for personal use, bundled as the `favoyang.common`
 
 ## Installation
 
-Install straight from git (works with any branch or tag):
+### Direct Installation
+
+Install straight from git (the default branch is used automatically):
 
 ```bash
 ansible-galaxy collection install git+https://github.com/favoyang/ansible-collection-common.git
 ```
+
+### Using requirements.yml
+
+Create a `requirements.yml` file:
+
+```yaml
+collections:
+- name: favoyang.common
+  type: git
+  source: https://github.com/favoyang/ansible-collection-common.git
+```
+
+Then install with:
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
+
+> **Heads-up:** `ansible-galaxy` expects semantic versions when you override the ref.
+> Passing a branch name such as `main` (for example `...,main`) raises `Non integer values in LooseVersion ('main')`.
+> Stick with the default branch (no version field) or pin an explicit tag like `version: 0.1.0`. If you previously installed with a branch reference, reinstall with `--force` to replace the non-semver copy.
 
 The collection declares a dependency on `community.docker`, so `ansible-galaxy` pulls it automatically. Re-run
 `ansible-galaxy collection install community.docker` manually only if you are developing against an existing checkout
