@@ -117,7 +117,6 @@
       Registry URL: {{ docker_compose_registry_url if docker_compose_registry_url != '' else 'Not set' }}
       Username: {{ '***PROVIDED***' if docker_compose_registry_username != '' else 'Not set' }}
       Password: {{ '***PROVIDED***' if docker_compose_registry_password != '' else 'Not set' }}
-  no_log: true
 
 - name: Login to Docker registry
   community.docker.docker_login:
@@ -126,6 +125,7 @@
     password: "{{ docker_compose_registry_password }}"
     state: present
   when: docker_compose_needs_auth
+  no_log: true
 
 - name: Deploy Docker Compose application
   block:
@@ -147,3 +147,4 @@
         username: "{{ docker_compose_registry_username }}"
         state: absent
       when: docker_compose_needs_auth
+      no_log: true
