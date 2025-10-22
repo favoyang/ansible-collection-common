@@ -19,6 +19,6 @@ galaxy_info:
   galaxy_tags:
     - caddy
     - docker
-    - reverse_proxy
+    - reverseproxy
     - web
 dependencies: []

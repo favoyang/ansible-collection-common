@@ -1,0 +1,6 @@
+---
+# Default values for caddy role
+# Provide templates and files from the consuming project.
+
+# Optional variables with sensible defaults
+caddy_caddyfile_template: Caddyfile.default.j2

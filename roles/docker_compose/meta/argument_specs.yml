@@ -9,4 +9,5 @@ argument_specs:
       docker_compose_remote_dir:
         type: "str"
         required: true
-        description: "Remote directory where docker-compose files will be deployed"
+        description: >-
+          Remote directory where docker-compose files will be deployed

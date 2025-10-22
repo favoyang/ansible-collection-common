@@ -1,0 +1,24 @@
+---
+namespace: favoyang
+name: common
+version: 0.1.0
+readme: README.md
+authors:
+  - Favo Yang
+description: >
+  Common infrastructure roles for Docker-based services, including Caddy
+  and supporting Docker Compose automation.
+license:
+  - MIT
+tags:
+  - docker
+  - compose
+  - caddy
+  - homelab
+repository: https://github.com/favoyang/ansible-roles
+documentation: README.md
+dependencies:
+  community.docker: '>=3.0.0'
+build_ignore:
+  - AGENTS.md
+  - inventory

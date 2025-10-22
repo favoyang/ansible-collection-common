@@ -2,15 +2,19 @@
 argument_specs:
   main:
     options:
-      caddyfile_template:
+      caddy_caddyfile_template:
         type: "str"
         required: false
         default: "Caddyfile.default.j2"
-        description: "Path to the Caddyfile Jinja template to deploy; defaults to the role's bundled template"
+        description: >-
+          Path to the Caddyfile Jinja template to deploy; defaults to the
+          role's bundled template
       caddy_site_template:
         type: "str"
         required: false
-        description: "Optional path to a site-specific template rendered under /srv/caddy/conf.d/"
+        description: >-
+          Optional path to a site-specific template rendered under
+          /srv/caddy/conf.d/
       caddy_image:
         type: "str"
         required: true

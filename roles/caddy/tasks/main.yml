@@ -1,14 +1,16 @@
+---
 - name: Setup Caddy
   vars:
     caddy_local_caddyfile: "/tmp/Caddyfile.{{ inventory_hostname }}"
     caddy_local_conf_dir: "/tmp/caddy_conf.d.{{ inventory_hostname }}"
   block:
     - name: Create remote directories
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         owner: root
         group: root
+        mode: "0755"
       loop:
         - /srv/caddy
         - /srv/caddy/data
@@ -18,20 +20,29 @@
         - /srv/caddy/logs
 
     - name: Derive site template output filename
-      set_fact:
-        caddy_site_output_filename: "{{ caddy_site_template | basename | regex_replace('\\.j2$', '') }}"
+      ansible.builtin.set_fact:
+        caddy_site_output_filename: >-
+          {{ caddy_site_template
+             | basename
+             | regex_replace('\\.j2$', '') }}
       when: caddy_site_template is defined
 
     - name: Ensure site template renders to .caddy filename
-      assert:
+      ansible.builtin.assert:
         that:
           - caddy_site_output_filename is match('^.+\\.caddy$')
-        fail_msg: "Site template {{ caddy_site_template }} must render to a *.caddy filename."
+        fail_msg: >-
+          Site template {{ caddy_site_template }} must render to a *.caddy
+          filename.
       when: caddy_site_template is defined
+
+    - name: Resolve Caddyfile template path
+      ansible.builtin.set_fact:
+        caddy_caddyfile_template_resolved: "{{ caddy_caddyfile_template }}"
 
     - name: Ensure local conf.d directory exists for validation
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ caddy_local_conf_dir }}"
         state: directory
         mode: '0755'
@@ -39,7 +50,7 @@
 
     - name: Render site template locally for validation
       delegate_to: localhost
-      template:
+      ansible.builtin.template:
         src: "{{ caddy_site_template }}"
         dest: "{{ caddy_local_conf_dir }}/{{ caddy_site_output_filename }}"
         mode: '0644'
@@ -48,15 +59,15 @@
 
     - name: Render Caddyfile locally for validation
       delegate_to: localhost
-      template:
-        src: "{{ caddyfile_template }}"
+      ansible.builtin.template:
+        src: "{{ caddy_caddyfile_template_resolved }}"
         dest: "{{ caddy_local_caddyfile }}"
         mode: '0644'
       changed_when: false
 
     - name: Validate Caddy configuration syntax locally
       delegate_to: localhost
-      shell: |
+      ansible.builtin.shell: |
         docker run --rm \
           -v {{ caddy_local_caddyfile }}:/etc/caddy/Caddyfile:ro \
           -v {{ caddy_local_conf_dir }}:/etc/caddy/conf.d:ro \
@@ -66,13 +77,13 @@
       changed_when: false
 
     - name: Display Caddy validation result
-      debug:
+      ansible.builtin.debug:
         msg: "Caddy configuration validation passed successfully"
       when: caddy_validation_result.rc == 0
 
     - name: Clean up temporary Caddyfile
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ caddy_local_caddyfile }}"
         state: absent
       when: caddy_validation_result.rc == 0
@@ -80,24 +91,25 @@
 
     - name: Clean up temporary site configuration directory
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ caddy_local_conf_dir }}"
         state: absent
       when: caddy_validation_result.rc == 0
       changed_when: false
 
     - name: Render remote /srv/caddy/Caddyfile
-      template:
-        src: "{{ caddyfile_template }}"
+      ansible.builtin.template:
+        src: "{{ caddy_caddyfile_template_resolved }}"
         dest: /srv/caddy/Caddyfile
         owner: root
         group: root
         mode: '0644'
 
     - name: Render site template to /srv/caddy/conf.d/
-      template:
+      ansible.builtin.template:
         src: "{{ caddy_site_template }}"
-        dest: "/srv/caddy/conf.d/{{ caddy_site_output_filename }}"
+        dest: >-
+          /srv/caddy/conf.d/{{ caddy_site_output_filename }}
         owner: root
         group: root
         mode: '0644'
@@ -106,12 +118,13 @@
     - name: Setup docker compose for Caddy
       block:
         - name: Preserve current role path for docker compose setup
-          set_fact:
-            current_role_path: "{{ role_path }}"
+          ansible.builtin.set_fact:
+            caddy_current_role_path: "{{ role_path }}"
 
         - name: Setup docker compose for Caddy
-          include_role:
-            name: docker_compose
+          ansible.builtin.include_role:
+            name: favoyang.common.docker_compose
           vars:
-            docker_compose_local_dir: "{{ current_role_path }}/templates"
+            docker_compose_local_dir: >-
+              {{ caddy_current_role_path }}/templates
             docker_compose_remote_dir: "/srv/caddy"

@@ -7,12 +7,12 @@ Generic Caddy web server setup with Docker Compose, including configuration vali
 ```yaml
 - hosts: servers
   roles:
-    - caddy
+    - favoyang.common.caddy
   vars:
     # Required: Docker image reference used for validation and deployment
     caddy_image: "caddy:2"
     # Override the default bundled Caddyfile if desired
-    caddyfile_template: "files/caddy/Caddyfile.j2"
+    caddy_caddyfile_template: "files/caddy/Caddyfile.j2"
     # Optional site config rendered under /srv/caddy/conf.d/
     caddy_site_template: "files/caddy/example-site.caddy.j2"
 ```

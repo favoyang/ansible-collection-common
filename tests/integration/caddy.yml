@@ -5,4 +5,4 @@
   vars:
     caddy_image: caddy:2
   roles:
-    - role: caddy
+    - role: favoyang.common.caddy

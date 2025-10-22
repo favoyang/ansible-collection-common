@@ -1,6 +1,0 @@
----
-# Default values for caddy role
-# This is a generic Caddy setup role - user provides their own templates and files
-
-# Optional variables with sensible defaults
-caddyfile_template: Caddyfile.default.j2

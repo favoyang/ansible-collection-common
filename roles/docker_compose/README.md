@@ -6,6 +6,8 @@ Deploys and manages Docker Compose applications with support for both static and
 
 The role copies files from a local directory to a remote directory and manages Docker Compose:
 
+- **Collection dependency**: Requires the `community.docker` collection (pulled automatically when installing
+  `favoyang.common`).
 - **Static files**: `docker-compose.yml`, `.env` → copied directly
 - **Template files**: `docker-compose.yml.j2`, `.env.j2` → rendered with Jinja2
 - **Priority**: Template files (`.j2`) take precedence over static files
@@ -18,7 +20,7 @@ The role copies files from a local directory to a remote directory and manages D
 ```yaml
 - hosts: servers
   roles:
-    - docker_compose
+    - favoyang.common.docker_compose
   vars:
     docker_compose_local_dir: files/myapp
     docker_compose_remote_dir: /srv/myapp
@@ -37,7 +39,7 @@ When including this role from another role, **always preserve the current role p
     
     - name: Setup application with docker compose
       include_role:
-        name: docker_compose
+        name: favoyang.common.docker_compose
       vars:
         docker_compose_local_dir: "{{ current_role_path }}/files"
         docker_compose_remote_dir: /srv/myapp
@@ -53,7 +55,7 @@ When including this role from another role, **always preserve the current role p
 ```yaml
 - name: Setup application with docker compose
   include_role:
-    name: docker_compose
+    name: favoyang.common.docker_compose
   vars:
     docker_compose_local_dir: "{{ role_path }}/files"  # role_path = docker_compose path!
     docker_compose_remote_dir: /srv/myapp
