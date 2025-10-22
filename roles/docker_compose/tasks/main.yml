@@ -93,19 +93,19 @@
 
 - name: Read Docker credentials from environment variables if not provided
   ansible.builtin.set_fact:
-    docker_compose_registry: >-
-      {{ docker_compose_registry | default(
-          lookup('env', 'DOCKER_REGISTRY', default=''), true) }}
+    docker_compose_registry_url: >-
+      {{ docker_compose_registry_url | default(
+          lookup('env', 'DOCKER_REGISTRY_URL', default=''), true) }}
     docker_compose_registry_username: >-
       {{ docker_compose_registry_username | default(
-          lookup('env', 'DOCKER_USERNAME', default=''), true) }}
+          lookup('env', 'DOCKER_REGISTRY_USERNAME', default=''), true) }}
     docker_compose_registry_password: >-
       {{ docker_compose_registry_password | default(
-          lookup('env', 'DOCKER_PASSWORD', default=''), true) }}
+          lookup('env', 'DOCKER_REGISTRY_PASSWORD', default=''), true) }}
 
 - name: Login to Docker registry
   community.docker.docker_login:
-    registry_url: "{{ docker_compose_registry | default(omit) }}"
+    registry_url: "{{ docker_compose_registry_url | default(omit) }}"
     username: "{{ docker_compose_registry_username }}"
     password: "{{ docker_compose_registry_password }}"
     state: present
@@ -128,7 +128,7 @@
   always:
     - name: Logout from Docker registry
       community.docker.docker_login:
-        registry_url: "{{ docker_compose_registry | default(omit) }}"
+        registry_url: "{{ docker_compose_registry_url | default(omit) }}"
         username: "{{ docker_compose_registry_username }}"
         state: absent
       no_log: true
