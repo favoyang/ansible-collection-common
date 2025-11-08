@@ -132,7 +132,7 @@
     - name: Start containers with latest images using docker compose
       community.docker.docker_compose_v2:
         project_src: "{{ docker_compose_remote_dir }}"
-        state: present
+        state: restarted  # Always restart to capture volume-only changes that don't modify docker-compose.yml
         pull: always
       become: true
       become_user: root

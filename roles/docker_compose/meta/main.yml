@@ -1,4 +1,4 @@
----
+# The role always restarts docker compose deployments so volume-only changes trigger a fresh run.
 galaxy_info:
   role_name: docker_compose
   author: Favo Yang
