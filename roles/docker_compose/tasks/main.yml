@@ -127,19 +127,13 @@
   when: docker_compose_needs_auth
   no_log: true
 
-- name: Pull latest Docker images
-  community.docker.docker_compose_v2_pull:
-    project_src: "{{ docker_compose_remote_dir }}"
-    policy: always
-  become: true
-  become_user: root
-
 - name: Deploy Docker Compose application
   block:
     - name: Start containers with latest images using docker compose
       community.docker.docker_compose_v2:
         project_src: "{{ docker_compose_remote_dir }}"
-        state: restarted  # Always restart to capture volume-only changes that don't modify docker-compose.yml
+        state: present
+        recreate: always  # Force container recreation to capture volume-only changes
         pull: always
       become: true
       become_user: root
