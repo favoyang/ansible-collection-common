@@ -4,3 +4,6 @@
 
 # Optional variables with sensible defaults
 caddy_caddyfile_template: Caddyfile.default.j2
+caddy_local_docker_command: >-
+  {{ 'docker' if lookup('ansible.builtin.pipe', 'uname -s') == 'Darwin'
+     else 'sudo docker' }}

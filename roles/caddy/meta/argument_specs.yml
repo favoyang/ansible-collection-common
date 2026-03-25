@@ -19,3 +19,10 @@ argument_specs:
         type: "str"
         required: true
         description: "Docker image for Caddy server"
+      caddy_local_docker_command:
+        type: "str"
+        required: false
+        description: >-
+          Command used on the control host for localhost validation. Defaults
+          to docker on macOS and sudo docker on Linux; override if the control
+          host uses rootless Docker or a different wrapper.

@@ -42,6 +42,7 @@
 
     - name: Ensure local conf.d directory exists for validation
       delegate_to: localhost
+      become: false
       ansible.builtin.file:
         path: "{{ caddy_local_conf_dir }}"
         state: directory
@@ -50,6 +51,7 @@
 
     - name: Render site template locally for validation
       delegate_to: localhost
+      become: false
       ansible.builtin.template:
         src: "{{ caddy_site_template }}"
         dest: "{{ caddy_local_conf_dir }}/{{ caddy_site_output_filename }}"
@@ -59,6 +61,7 @@
 
     - name: Render Caddyfile locally for validation
       delegate_to: localhost
+      become: false
       ansible.builtin.template:
         src: "{{ caddy_caddyfile_template_resolved }}"
         dest: "{{ caddy_local_caddyfile }}"
@@ -67,11 +70,27 @@
 
     - name: Validate Caddy configuration syntax locally
       delegate_to: localhost
+      become: false
       ansible.builtin.shell: |
-        docker run --rm \
-          -v {{ caddy_local_caddyfile }}:/etc/caddy/Caddyfile:ro \
-          -v {{ caddy_local_conf_dir }}:/etc/caddy/conf.d:ro \
-          {{ caddy_image }} caddy validate --config /etc/caddy/Caddyfile
+        validation_container="$(
+          {{ caddy_local_docker_command }} create \
+            {{ caddy_image }} \
+            caddy validate --config /etc/caddy/Caddyfile
+        )"
+        cleanup() {
+          {{ caddy_local_docker_command }} rm -f "$validation_container" >/dev/null 2>&1 || true
+        }
+        trap cleanup EXIT
+
+        {{ caddy_local_docker_command }} cp \
+          {{ caddy_local_caddyfile }} \
+          "$validation_container:/etc/caddy/Caddyfile"
+
+        {{ caddy_local_docker_command }} cp \
+          {{ caddy_local_conf_dir }} \
+          "$validation_container:/etc/caddy/conf.d"
+
+        {{ caddy_local_docker_command }} start -a "$validation_container"
       register: caddy_validation_result
       failed_when: caddy_validation_result.rc != 0
       changed_when: false
@@ -83,6 +102,7 @@
 
     - name: Clean up temporary Caddyfile
       delegate_to: localhost
+      become: false
       ansible.builtin.file:
         path: "{{ caddy_local_caddyfile }}"
         state: absent
@@ -91,6 +111,7 @@
 
     - name: Clean up temporary site configuration directory
       delegate_to: localhost
+      become: false
       ansible.builtin.file:
         path: "{{ caddy_local_conf_dir }}"
         state: absent
