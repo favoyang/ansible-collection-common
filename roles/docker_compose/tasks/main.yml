@@ -25,6 +25,7 @@
 
 - name: Check if local docker-compose.yml exists
   delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ docker_compose_local_compose_path }}"
   register: docker_compose_compose_stat
@@ -39,6 +40,7 @@
 
 - name: Check if local docker-compose.yml.j2 exists
   delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ docker_compose_local_compose_template_path }}"
   register: docker_compose_compose_template_stat
@@ -65,6 +67,7 @@
 
 - name: Check if local .env exists
   delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ docker_compose_local_env_path }}"
   register: docker_compose_env_stat
@@ -79,6 +82,7 @@
 
 - name: Check if local .env.j2 exists
   delegate_to: localhost
+  become: false
   ansible.builtin.stat:
     path: "{{ docker_compose_local_env_template_path }}"
   register: docker_compose_env_template_stat

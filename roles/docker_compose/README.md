@@ -13,6 +13,11 @@ The role copies files from a local directory to a remote directory and manages D
 - **Priority**: Template files (`.j2`) take precedence over static files
 - **Docker operations**: Uses `community.docker.docker_compose_v2` module to pull latest images and recreate containers
 
+Local file discovery (`stat` checks for `docker-compose.yml`, `docker-compose.yml.j2`,
+`.env`, and `.env.j2`) runs on the Ansible control host with `become: false`.
+This avoids unexpected sudo prompts on macOS or other control hosts when the
+play sets `become: true` for remote deployment.
+
 ## Usage
 
 ### Direct Role Usage
