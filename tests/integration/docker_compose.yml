@@ -6,5 +6,32 @@
   vars:
     docker_compose_local_dir: "{{ playbook_dir }}/../fixtures/docker_compose"
     docker_compose_remote_dir: /tmp/docker_compose_role
+    docker_compose_snippets_remote_dir: /tmp/docker_compose_role/docker-compose.d
+  pre_tasks:
+    - name: Create Docker Compose snippet directory fixture
+      ansible.builtin.file:
+        path: "{{ docker_compose_snippets_remote_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Write Docker Compose snippet fixture
+      ansible.builtin.copy:
+        dest: "{{ docker_compose_snippets_remote_dir }}/10-label.yml"
+        mode: "0644"
+        content: |
+          services:
+            hello:
+              labels:
+                favoyang.common.snippet: "true"
   roles:
     - role: favoyang.common.docker_compose
+  post_tasks:
+    - name: Read rendered Docker Compose file
+      ansible.builtin.slurp:
+        src: "{{ docker_compose_remote_dir }}/docker-compose.yml"
+      register: docker_compose_rendered
+
+    - name: Assert Docker Compose snippet was merged
+      ansible.builtin.assert:
+        that:
+          - "'favoyang.common.snippet' in (docker_compose_rendered.content | b64decode)"

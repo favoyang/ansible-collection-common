@@ -21,6 +21,22 @@ Generic Caddy web server setup with Docker Compose, including configuration vali
 
 All rendered site configs share `/srv/sites` inside the container, which is sourced from `/srv/caddy/sites` on the host. Place site-specific assets under paths like `/srv/caddy/sites/com.example.com` so the matching `conf.d` entry can reference them directly.
 
+The role also preserves target-local Docker Compose snippets under
+`/srv/caddy/docker-compose.d` by default. Snippets are merged with the role's
+base Caddy compose on every run before Caddy is deployed. Use this for durable
+site-specific container extensions, such as extra read-only mounts required by
+a site config. Do not edit `/srv/caddy/docker-compose.yml` directly because the
+role regenerates it.
+
+Example snippet:
+
+```yaml
+services:
+  caddy:
+    volumes:
+      - /srv/example-assets:/srv/example-assets:ro
+```
+
 Local configuration validation runs on the control host before the role updates
 the remote Caddy files.
 

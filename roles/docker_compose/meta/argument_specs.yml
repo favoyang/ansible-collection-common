@@ -29,3 +29,12 @@ argument_specs:
         description: >-
           Docker registry password for authentication.
           Can also be set via DOCKER_REGISTRY_PASSWORD environment variable.
+      docker_compose_snippets_remote_dir:
+        type: "str"
+        required: false
+        default: ""
+        description: >-
+          Optional remote directory containing persistent Docker Compose
+          snippets. When set, the role preserves snippets in that directory and
+          renders docker-compose.yml from the base compose plus all *.yml and
+          *.yaml snippets sorted by path.

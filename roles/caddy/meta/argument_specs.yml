@@ -26,3 +26,10 @@ argument_specs:
           Command used on the control host for localhost validation. Defaults
           to docker on macOS and sudo docker on Linux; override if the control
           host uses rootless Docker or a different wrapper.
+      caddy_compose_snippets_remote_dir:
+        type: "str"
+        required: false
+        default: "/srv/caddy/docker-compose.d"
+        description: >-
+          Remote directory for persistent Docker Compose snippets merged into
+          the final Caddy compose file on every role run.
