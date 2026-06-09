@@ -3,3 +3,4 @@
 docker_compose_registry_url: ""
 docker_compose_registry_username: ""
 docker_compose_registry_password: ""
+docker_compose_snippets_remote_dir: ""

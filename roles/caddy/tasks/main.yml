@@ -18,6 +18,7 @@
         - /srv/caddy/conf.d
         - /srv/caddy/sites
         - /srv/caddy/logs
+        - "{{ caddy_compose_snippets_remote_dir }}"
 
     - name: Derive site template output filename
       ansible.builtin.set_fact:
@@ -78,7 +79,8 @@
             caddy validate --config /etc/caddy/Caddyfile
         )"
         cleanup() {
-          {{ caddy_local_docker_command }} rm -f "$validation_container" >/dev/null 2>&1 || true
+          {{ caddy_local_docker_command }} rm -f \
+            "$validation_container" >/dev/null 2>&1 || true
         }
         trap cleanup EXIT
 
@@ -149,3 +151,5 @@
             docker_compose_local_dir: >-
               {{ caddy_current_role_path }}/templates
             docker_compose_remote_dir: "/srv/caddy"
+            docker_compose_snippets_remote_dir: >-
+              {{ caddy_compose_snippets_remote_dir }}

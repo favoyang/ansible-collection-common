@@ -5,8 +5,11 @@
     state: directory
     owner: root
     mode: "0755"
-  loop:
-    - "{{ docker_compose_remote_dir }}"
+  loop: >-
+    {{ [docker_compose_remote_dir]
+       + ([docker_compose_snippets_remote_dir]
+          if docker_compose_snippets_remote_dir | length > 0
+          else []) }}
 
 - name: Prepare variables
   ansible.builtin.set_fact:
@@ -16,6 +19,12 @@
       {{ docker_compose_local_dir }}/docker-compose.yml.j2
     docker_compose_remote_compose_path: >-
       {{ docker_compose_remote_dir }}/docker-compose.yml
+    docker_compose_remote_base_compose_path: >-
+      {{ docker_compose_remote_dir }}/{{ '.docker-compose.base.yml'
+         if docker_compose_snippets_remote_dir | length > 0
+         else 'docker-compose.yml' }}
+    docker_compose_remote_tmp_pattern: >-
+      {{ docker_compose_remote_dir }}/docker-compose.yml.tmp.XXXXXX
     docker_compose_local_env_path: >-
       {{ docker_compose_local_dir }}/.env
     docker_compose_local_env_template_path: >-
@@ -33,7 +42,7 @@
 - name: Copy docker-compose.yml if exists
   ansible.builtin.template:
     src: "{{ docker_compose_local_compose_path }}"
-    dest: "{{ docker_compose_remote_compose_path }}"
+    dest: "{{ docker_compose_remote_base_compose_path }}"
     owner: root
     mode: "0644"
   when: docker_compose_compose_stat.stat.exists
@@ -48,7 +57,7 @@
 - name: Render docker-compose.yml.j2 if exists
   ansible.builtin.template:
     src: "{{ docker_compose_local_compose_template_path }}"
-    dest: "{{ docker_compose_remote_compose_path }}"
+    dest: "{{ docker_compose_remote_base_compose_path }}"
     owner: root
     mode: "0644"
   when: docker_compose_compose_template_stat.stat.exists
@@ -95,6 +104,59 @@
     mode: "0644"
   when: docker_compose_env_template_stat.stat.exists
 
+- name: Discover remote Docker Compose snippets
+  ansible.builtin.find:
+    paths: "{{ docker_compose_snippets_remote_dir }}"
+    patterns:
+      - "*.yml"
+      - "*.yaml"
+    file_type: file
+  register: docker_compose_remote_snippets
+  when: docker_compose_snippets_remote_dir | length > 0
+
+- name: Record remote Docker Compose snippet paths
+  ansible.builtin.set_fact:
+    docker_compose_remote_snippet_paths: >-
+      {{ docker_compose_remote_snippets.files
+         | map(attribute='path')
+         | sort
+         | list }}
+  when: docker_compose_snippets_remote_dir | length > 0
+
+- name: Render final Docker Compose file with snippets
+  ansible.builtin.shell: |
+    set -euo pipefail
+    tmp="$(mktemp {{ docker_compose_remote_tmp_pattern | quote }})"
+    cleanup() {
+      rm -f "$tmp"
+    }
+    trap cleanup EXIT
+
+    docker compose \
+      -f {{ docker_compose_remote_base_compose_path | quote }} \
+    {% for docker_compose_snippet in docker_compose_remote_snippet_paths %}
+      -f {{ docker_compose_snippet | quote }} \
+    {% endfor %}
+      config \
+      --no-interpolate \
+      --no-env-resolution \
+      --no-path-resolution > "$tmp"
+
+    chmod 0644 "$tmp"
+    if test -f {{ docker_compose_remote_compose_path | quote }} &&
+       cmp -s "$tmp" {{ docker_compose_remote_compose_path | quote }}; then
+      exit 0
+    fi
+
+    mv "$tmp" {{ docker_compose_remote_compose_path | quote }}
+    trap - EXIT
+    echo changed
+  args:
+    executable: /bin/bash
+  register: docker_compose_render_final_result
+  changed_when: "'changed' in docker_compose_render_final_result.stdout"
+  when: docker_compose_snippets_remote_dir | length > 0
+
 - name: Read Docker credentials from environment variables if not provided
   ansible.builtin.set_fact:
     docker_compose_registry_url: >-
@@ -110,17 +172,27 @@
 - name: Set fact for authentication requirement
   ansible.builtin.set_fact:
     docker_compose_needs_auth: >-
-      {{ docker_compose_registry_username != '' and 
-         docker_compose_registry_password != '' and 
+      {{ docker_compose_registry_username != '' and
+         docker_compose_registry_password != '' and
          docker_compose_registry_url != '' }}
 
 - name: Show authentication status
   ansible.builtin.debug:
     msg: >-
-      Docker registry authentication: {{ 'ENABLED' if docker_compose_needs_auth else 'DISABLED' }}
-      Registry URL: {{ docker_compose_registry_url if docker_compose_registry_url != '' else 'Not set' }}
-      Username: {{ '***PROVIDED***' if docker_compose_registry_username != '' else 'Not set' }}
-      Password: {{ '***PROVIDED***' if docker_compose_registry_password != '' else 'Not set' }}
+      Docker registry authentication:
+      {{ 'ENABLED' if docker_compose_needs_auth else 'DISABLED' }}
+      Registry URL:
+      {{ docker_compose_registry_url
+         if docker_compose_registry_url != ''
+         else 'Not set' }}
+      Username:
+      {{ '***PROVIDED***'
+         if docker_compose_registry_username != ''
+         else 'Not set' }}
+      Password:
+      {{ '***PROVIDED***'
+         if docker_compose_registry_password != ''
+         else 'Not set' }}
 
 - name: Login to Docker registry
   community.docker.docker_login:
@@ -137,7 +209,8 @@
       community.docker.docker_compose_v2:
         project_src: "{{ docker_compose_remote_dir }}"
         state: present
-        recreate: always  # Force container recreation to capture volume-only changes
+        # Force container recreation to capture volume-only changes.
+        recreate: always
         pull: always
       become: true
       become_user: root
