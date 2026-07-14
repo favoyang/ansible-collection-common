@@ -28,22 +28,16 @@ roles touched, tests or lint commands run, fixture updates, and any follow-up
 work. Link issues when available and request review from maintainers familiar
 with the affected role.
 
-## Code Review Fix Loop
-Run local PR code review before creating or updating the GitHub PR. Review the
-full diff as a pull request: prioritize bugs, regressions, missing tests,
-incorrect assumptions, deployment risk, and mismatches with the requested
-behavior. Do not merge until local PR code review passes or the user explicitly
-waives it.
+## Review Gate
 
-Make review fixes in the same PR branch or worktree that introduced the change.
-Re-run the relevant validation after fixes, then run local PR code review again.
-Repeat the local review and fix loop until there are no blocking findings.
+Before committing, use the installed `$branch-review-loop` skill to review the
+complete branch diff. Follow the skill through any required fixes, validation,
+and re-review. If the skill is unavailable, ask the user to install it before
+continuing.
 
-Commit the reviewed change only after validation and local PR code review pass.
-After pushing, create or update the GitHub PR. Keep the PR summary current with
-the final change scope and validation commands that were run. Merge only after
-the local review fix loop passes and checks are green, or the user explicitly
-accepts the remaining risk.
+Create, update, or merge the pull request only after the review gate passes.
+Merging also requires green checks unless the user explicitly accepts the
+remaining risk.
 
 ## Security & Configuration Tips
 Do not commit secrets; depend on vaulted files or environment overrides instead. Review exposed ports and volume mounts in `templates/` when touching Docker assets. Document required environment variables or external services in each role’s README so operators can reproduce the configuration safely.
