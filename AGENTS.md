@@ -32,7 +32,7 @@ with the affected role.
 ## Security & Configuration Tips
 Do not commit secrets; depend on vaulted files or environment overrides instead. Review exposed ports and volume mounts in `templates/` when touching Docker assets. Document required environment variables or external services in each role’s README so operators can reproduce the configuration safely.
 
-# Pull Request Delivery Workflow
+## Pull Request Delivery Workflow
 
 Deliver repository changes through pull requests by default, regardless of
 size. Do not make changes directly in the main checkout unless the user
